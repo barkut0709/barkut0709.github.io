@@ -1,0 +1,230 @@
+﻿<html><meta http-equiv="Content-type: text/html; charset=UTF-8">
+<meta property="og:image" content="http://barkut0709.github.io/p91/img.png" />
+<meta property="og:image:width" content="183" />
+<meta property="og:image:height" content="98" />
+<meta property="og:title" content="Project 91">
+<meta property="og:description" content="СОЦИАЛЬНО-ЭКОНОМИЧЕСКИЕ ПОКАЗАТЕЛИ РОССИЙСКОЙ ФЕДЕРАЦИИ В 1991-2016 гг." />
+<meta property="og:url" content="http://barkut0709.github.io/p91/" />
+<meta property="og:locale" content="ru_RU" />
+    <head>
+        <title>
+            Project 91 - СОЦИАЛЬНО-ЭКОНОМИЧЕСКИЕ ПОКАЗАТЕЛИ РОССИЙСКОЙ ФЕДЕРАЦИИ В 1991-2016 гг.
+        </title>
+
+        <script src="../libs/js/jquery.min.js"></script>
+        <script src="../libs/js/highcharts.js"></script>
+		<script src="../libs/js/exporting.js"></script>
+        <script type="text/javascript" src="http://yastatic.net/share/share.js" charset="utf-8"></script> 
+
+        <style>
+        </style>
+    </head>
+    <body>
+	<select name="sod" id="sod">
+</select>
+	<table border="1">
+<tr><td>
+<select multiple id="pars" name="pars" style="width: 400px;overflow-x: scroll" size="30">
+</select>
+</td><td>
+<div id="chartContainer"  style="width: 800px;height: 400px;margin: 0 0"></div>
+</td></tr>
+</table>
+Ссылка: <input id="link" type="text" size="50" class="autoselect" readonly="" value=""/>
+<br>
+<br>
+<div id="ya_share"></div>
+<br>
+<hr>
+ЖЖ автора: <a href="https://barkut0709.livejournal.com/">https://barkut0709.livejournal.com/</a>, 2018
+<!--br>
+<img alt="Лицензия Creative Commons" style="border-width:0" src="88x31.png"-->
+<script>
+	var YaShareInstance = new Ya.share({
+            element: 'ya_share',
+		image: "http://navizv.github.io/rustat/pre.png"});
+	Highcharts.setOptions({
+                    lang: {
+                        loading: 'Загрузка...',
+                        months: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                        weekdays: ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'],
+                        shortMonths: ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июнь', 'Июль', 'Авг', 'Сент', 'Окт', 'Нояб', 'Дек'],
+                        exportButtonTitle: "Экспорт",
+                        printButtonTitle: "Печать",
+                        rangeSelectorFrom: "С",
+                        rangeSelectorTo: "По",
+                        rangeSelectorZoom: "Период",
+                        downloadPNG: 'Скачать PNG',
+                        downloadJPEG: 'Скачать JPEG',
+                        downloadPDF: 'Скачать PDF',
+                        downloadSVG: 'Скачать SVG',
+                        printChart: 'Распечатать диаграмму',
+                        thousandsSep: " ",
+                        decimalPoint: ',',
+                        numericSymbols: [" тыс."," млн."," млрд."," трлн."," квдр."," квнт."]
+                    }
+                });
+	
+	var rzd = "r01";
+	var pars = ["3"];
+	var tab = [];
+	
+	$.ajax({//заполняем вып.список оглавлением
+        type: "GET",
+        url: "data/sod.csv",
+        dataType: "text",
+        success: function(sod) {
+			var lines = sod.split(/\r\n|\n/);
+			for(i in lines){
+				var line = lines[i].split(';');
+				var zid = line[0];
+				var znm = line[1];
+				$('#sod').append($("<option></option>")
+                    .attr("value",zid)
+                    .text(znm)); 
+			}
+			
+			if (location.search != "") {
+				var lnk = linkDecode(location.search.substring(1));
+				$('#sod option[value=\"'+lnk.rzd+'\"]').attr('selected','selected');
+				pars = lnk.pars;
+			}
+			fillPars();
+		}
+    });
+	
+	$("#sod").change(function() {
+		fillPars();
+	});
+	
+	function fillPars(){ //заполняем параметры
+		tab = [];
+		$('#pars').html("");
+		rzd = $( "#sod" ).val();
+		$.ajax({//заполняем вып.список оглавлением
+			type: "GET",
+			url: "data/" + rzd + ".csv",
+			dataType: "text",
+			success: function(sod) {
+				var lines = sod.split(/\r\n|\n/);
+				for(i in lines){
+					if(i < 3)continue;
+					
+					var line = lines[i].split(';');
+					var zid = i;
+					var znm = line[0];
+					if(znm.charAt(0) == '\"')
+						znm = znm.slice(1);
+					var opt = $("<option></option>")
+						.attr("value",zid)
+						.attr("title",znm)
+						.text(znm);
+					$('#pars').append(opt); 
+					tab[i] = [];
+					var empty = true;
+					for(j in line){
+						tab[i][j] = line[j];
+						if(tab[i][j]!="" && j != 0)
+							empty = false;
+					}
+					if(empty)
+						opt.css('font-style', 'italic').css('font-weight', 'bold');
+					if($.inArray(i,pars) >= 0)
+						opt.attr('selected','selected');
+				}
+				if(pars != [])
+					makeChart();
+			}
+		});
+	}
+	
+	$("#pars").change(function() {
+		makeChart();
+	});
+	
+	function makeChart(){ //строим диаграмму
+		var obj = {
+			chart: {
+				renderTo: document.getElementById("chartContainer"),
+				type: "line"
+			},
+			title: {
+				text: "СОЦИАЛЬНО-ЭКОНОМИЧЕСКИЕ ПОКАЗАТЕЛИ РОССИЙСКОЙ ФЕДЕРАЦИИ В 1991-2016 гг."
+			},
+			series: [],
+			legend: {
+				//layout: 'vertical',
+				//align: 'bottom',
+				//verticalAlign: 'middle'
+			}
+		};
+		obj.xAxis = {categories: []};
+        for (i = 1991; i <= 2016; i++)
+            obj.xAxis.categories.push(i);
+	
+		var pars = [];
+		$("#pars > option:selected").each(function() {
+			var series = {
+				name: $(this).text(),
+				data: []
+			};
+			var i = $(this).val();
+			for(j in tab[i]){
+				if(j == 0 || j > 26)
+					continue;
+				var c = parseFloat(tab[i][j].replace(',','.'));
+				if(isNaN(c))
+					c = null;
+				series.data.push(c);
+			}
+			obj.series.push(series);
+			pars.push(i);
+		});
+	
+		var chart = new Highcharts.Chart(obj);
+		
+		var lnk = {
+			rzd: rzd,
+			pars: pars
+		};
+		var str = linkEncode(lnk);
+		link.value = "http://" + location.host + location.pathname + "?" + str;
+		var st = '' + obj.series[0].name;
+		YaShareInstance.updateShareLink(link.value,st);
+	}
+	
+	//$("#link").val("barkut0709.github.io/p91/");
+
+	$(".autoselect").click(function() {
+        this.focus();
+        this.setSelectionRange(0, 9999);
+    });
+    if (navigator.userAgent.match(/iPod|iPhone|iPad/i))
+        $(".autoselect").removeAttr("readonly"); //иначе не выделяет
+		
+	function linkEncode(obj){
+		var str = "";
+		$.each(obj,function (f,v){
+			if(str!="")
+				str+="&";
+			//v-massive???
+			if(f=="pars"||f=="regs"||f=="dops")
+				v = v.join("_").replace(/\//g,"\*");
+			str+=f+"="+encodeURIComponent(v);
+		});
+		return str;
+	}
+
+	function linkDecode(str){
+		var obj = {};
+		$.each(str.split("&"), function (i,v){
+			var p = v.split("=");
+			obj[p[0]] = decodeURIComponent(p[1]);
+			if(p[0]=="pars"||p[0]=="regs"||p[0]=="dops")
+				obj[p[0]] = obj[p[0]].replace(/\*/g,"\/").split("_");
+		});
+		return obj;
+	}
+</script>
+</body>
+</html>
