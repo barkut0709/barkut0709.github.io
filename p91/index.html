@@ -96,6 +96,7 @@
     });
 	
 	$("#sod").change(function() {
+		pars = [];
 		fillPars();
 	});
 	
@@ -134,7 +135,7 @@
 					if($.inArray(i,pars) >= 0)
 						opt.attr('selected','selected');
 				}
-				if(pars != [])
+				if(pars.length > 0)
 					makeChart();
 			}
 		});
