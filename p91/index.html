@@ -40,9 +40,12 @@
 ЖЖ автора: <a href="https://barkut0709.livejournal.com/" target="_blank">https://barkut0709.livejournal.com/</a>, 2018 <br>
 Источник данных: <a href="http://www.gks.ru/wps/wcm/connect/rosstat_main/rosstat/ru/statistics/publications/catalog/doc_1135087342078" target="_blank">Росстат, приложение к Российскому статистическому ежегоднику</a>
 <script>
-	var YaShareInstance = new Ya.share({
+	var YaShareInstance;
+	try{
+		YaShareInstance	= new Ya.share({
             element: 'ya_share',
 		image: "http://navizv.github.io/rustat/pre.png"});
+	}catch{}
 	Highcharts.setOptions({
                     lang: {
                         loading: 'Загрузка...',
@@ -222,7 +225,9 @@
 		var str = linkEncode(lnk);
 		link.value = "http://" + location.host + location.pathname + "?" + str;
 		var st = '' + obj.series[0].name;
-		YaShareInstance.updateShareLink(link.value,st);
+		try{
+			YaShareInstance.updateShareLink(link.value,st);
+		}catch{}
 	}
 	
 	//$("#link").val("barkut0709.github.io/p91/");
