@@ -217,8 +217,10 @@
 					flagFilled = true;
 				series.data.push(c);
 			}
-			if(!flagFilled)
+			if(!flagFilled){
+				series.lineWidth = 0;
 				series.color = '#FFFFFF';
+			}
 			
 			obj.series.push(series);
 			pars.push(i);
