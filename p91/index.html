@@ -121,6 +121,7 @@
 					var znm = line[0];
 					if(znm.charAt(0) == '\"')
 						znm = znm.slice(1);
+						
 					var opt = $("<option></option>")
 						.attr("value",zid)
 						.attr("title",znm)
@@ -135,6 +136,9 @@
 					}
 					if(empty)
 						opt.css('font-style', 'italic').css('font-weight', 'bold');
+					else if(parseInt(i)<lines.length-1 && lines[parseInt(i)+1] != undefined && lines[parseInt(i)+1].slice(0,12) == "в том числе:")
+						opt.css('font-weight', 'bold');
+					
 					if($.inArray(i,pars) >= 0)
 						opt.attr('selected','selected');
 				}
@@ -220,6 +224,12 @@
 			if(!flagFilled){
 				series.lineWidth = 0;
 				series.color = '#FFFFFF';
+			}else{
+				//var sn = series.name.indexOf(')')
+				//if(sn > 1 && '0123456789'.indexOf(series.name[sn-1]) !== -1){
+					//series.name = series.name.slice(0,sn-1) + '<font color="red">' + series.name.slice(sn-1,sn+1) + '</font>' 
+					//+ series.name.slice(sn+2,series.name.length);
+				//}
 			}
 			
 			obj.series.push(series);
