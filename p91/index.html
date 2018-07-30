@@ -192,12 +192,14 @@
             obj.xAxis.categories.push(i);
 	
 		pars = [];
+		
 		$("#pars > option:selected").each(function() {
 			var series = {
 				name: $(this).text(),
 				data: []
 			};
 			var i = $(this).val();
+			var flagFilled = false;
 			for(j in tab[i]){
 				if(j == 0 || j > 26)
 					continue;
@@ -211,8 +213,13 @@
 				var c = parseFloat(str);
 				if(isNaN(c))
 					c = null;
+				else
+					flagFilled = true;
 				series.data.push(c);
 			}
+			if(!flagFilled)
+				series.color = '#FFFFFF';
+			
 			obj.series.push(series);
 			pars.push(i);
 		});
